@@ -28,22 +28,26 @@ public class S3Service {
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
-    public String upload(MultipartFile multipartFile, String dirName) throws IOException{
+    public String uploadMultipartFile(MultipartFile multipartFile, String dirName) throws IOException{
         File uploadFile = convert(multipartFile)
                 .orElseThrow(() -> new IllegalArgumentException("MultipartFile -> File 전환 실패"));
-        return upload(uploadFile, dirName);
+        return uploadFileToS3(uploadFile, dirName);
     }
 
-    private String upload(File uploadFile, String dirName){
+    // upload file
+    private String uploadFileToS3(File uploadFile, String dirName){
         UUID uuid = UUID.randomUUID();
         String fileName = dirName + "/" + uploadFile.getName() + "_" + uuid;
+        String filePath = dirName + "/" + uploadFile.getName();
 
         putS3(uploadFile, fileName);
+        save(S3Dto.from(fileName, filePath));
         removeNewFile(uploadFile);
 
         return uploadFile.getName();
     }
 
+    // put object to s3
     private String putS3(File uploadFile, String fileName){
         amazonS3.putObject(new PutObjectRequest(bucket, fileName, uploadFile)
                 .withCannedAcl(CannedAccessControlList.PublicRead)
@@ -51,6 +55,7 @@ public class S3Service {
         return amazonS3.getUrl(bucket, fileName).toString();
     }
 
+    // remove temp file
     private void removeNewFile(File targetFile){
         if(targetFile.delete()){
             log.info("파일이 삭제되었습니다.");
@@ -58,6 +63,8 @@ public class S3Service {
             log.info("파일이 삭제되지 못했습니다.");
         }
     }
+
+    // multipart to file
     private Optional<File> convert(MultipartFile file) throws  IOException {
         File convertFile = new File(file.getOriginalFilename());
         if(convertFile.createNewFile()) {
@@ -69,9 +76,9 @@ public class S3Service {
         return Optional.empty();
     }
 
+    // save to db
     public void save(S3Dto s3Dto) {
         Image image = Image.from(s3Dto);
         s3Repository.save(image);
-        System.out.println("image = " + image);
     }
 }

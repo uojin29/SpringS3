@@ -1,6 +1,5 @@
 package com.example.springs3.controller;
 
-import com.example.springs3.controller.request.S3Request;
 import com.example.springs3.dto.S3Dto;
 import com.example.springs3.service.S3Service;
 import lombok.RequiredArgsConstructor;
@@ -17,12 +16,8 @@ public class S3Controller {
     private final S3Service s3Service;
 
     @PostMapping("/upload")
-    public String upload(@RequestParam MultipartFile image,
-                         @RequestParam String imageName,
-                         @RequestParam String imagePath) throws IOException {
-        S3Dto s3Dto = S3Dto.from(imageName, imagePath);
-        s3Service.save(s3Dto);
-        return s3Service.upload(image, "test");
+    public String upload(@RequestParam MultipartFile image) throws IOException {
+        return s3Service.uploadMultipartFile(image, "test");
     }
 
 }

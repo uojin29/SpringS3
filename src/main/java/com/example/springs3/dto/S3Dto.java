@@ -1,6 +1,5 @@
 package com.example.springs3.dto;
 
-import com.example.springs3.controller.request.S3Request;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
